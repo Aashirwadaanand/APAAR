@@ -20,13 +20,17 @@ import type {
 // (e.g. "https://apaar-backend.onrender.com"). We normalize it to include "/api".
 // In local development, when unset, it defaults to "/api" which Vite proxies to http://127.0.0.1:8000.
 const rawEnvUrl = (import.meta.env.VITE_API_BASE_URL || '').trim();
-const cleanEnvUrl = rawEnvUrl.replace(/\/+$/, '');
+let cleanEnvUrl = rawEnvUrl.replace(/\/+$/, '');
+if (cleanEnvUrl && !cleanEnvUrl.startsWith('http://') && !cleanEnvUrl.startsWith('https://') && !cleanEnvUrl.startsWith('/')) {
+  cleanEnvUrl = `https://${cleanEnvUrl}`;
+}
 
 export const BASE_URL = cleanEnvUrl
   ? cleanEnvUrl.endsWith('/api')
     ? cleanEnvUrl
     : `${cleanEnvUrl}/api`
   : '/api';
+
 
 
 async function handleResponse<T>(res: Response): Promise<T> {

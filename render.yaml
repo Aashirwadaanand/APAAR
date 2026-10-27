@@ -1,6 +1,5 @@
 # Render Blueprint Specification for SIH26263 APAAR Enrolment Integrity Platform
 # Note: Persistent disks on Render require a Starter plan ($7/mo Web Service + $0.25/GB disk).
-# For 100% free-tier deployment without persistent disk, omit the 'disk' block and use local SQLite.
 services:
   # ---------------------------------------------------------------------------
   # 1. FastAPI Backend Web Service
@@ -20,7 +19,7 @@ services:
       - key: ENVIRONMENT
         value: production
       - key: CORS_ORIGINS
-        # Update with your deployed frontend URL (e.g. https://apaar-integrity-frontend.onrender.com)
+        # Configured for local dev; update with custom domain if desired
         value: "http://localhost:5173,http://localhost:3000"
     disk:
       name: apaar-persistent-data
@@ -30,15 +29,18 @@ services:
   # ---------------------------------------------------------------------------
   # 2. React + Vite Frontend Static Site
   # ---------------------------------------------------------------------------
-  - type: static
+  - type: web
     name: apaar-integrity-frontend
+    runtime: static
     rootDir: frontend
     buildCommand: npm install && npm run build
     staticPublishPath: dist
     envVars:
       - key: VITE_API_BASE_URL
-        # Set to the public Web Service URL (e.g. https://apaar-integrity-backend.onrender.com)
-        sync: false
+        fromService:
+          type: web
+          name: apaar-integrity-backend
+          property: host
     routes:
       - type: rewrite
         source: /*

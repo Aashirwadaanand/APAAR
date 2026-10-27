@@ -40,7 +40,8 @@ The repository includes a ready-to-use [render.yaml](file:///c:/Users/aashirwad/
 4. Render will parse `render.yaml` and configure:
    - `apaar-integrity-backend` Web Service with 1GB persistent disk at `/var/data`.
    - `apaar-integrity-frontend` Static Site with SPA rewrite rules.
-5. In the Blueprint review screen, enter the `VITE_API_BASE_URL` placeholder, then click **Apply**.
+5. In the Blueprint review screen, verify the services and click **Apply** (`VITE_API_BASE_URL` is automatically wired to the backend host via Blueprint `fromService` cross-linking).
+
 
 ---
 
