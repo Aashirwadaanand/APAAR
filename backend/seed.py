@@ -111,12 +111,17 @@ def seed_database(db: Session = None, force: bool = False):
             fn = first_names_ait[i]
             ln = last_names_ait[i % len(last_names_ait)]
             roll = f"AIT-2024-CSE-{100 + i}"
-            apaar = generate_valid_synthetic_apaar(f"910000000{10 + i:02d}")
+            if i == 0:
+                apaar = apaar_valid_1  # Canonical 900000000018 with valid Verhoeff checksum
+                dob_val = date(2004, 3, 15)
+            else:
+                apaar = generate_valid_synthetic_apaar(f"910000000{10 + i:02d}")
+                dob_val = date(2004, (i % 12) + 1, (i % 25) + 1)
             students_to_insert.append(Student(
                 institution_id=inst1.id,
                 institution_student_id=roll,
                 full_name=f"{fn} {ln}",
-                date_of_birth=date(2004, (i % 12) + 1, (i % 25) + 1),
+                date_of_birth=dob_val,
                 programme="B.Tech Computer Science",
                 academic_year="2025-2026",
                 apaar_id=apaar,
@@ -202,7 +207,7 @@ def seed_database(db: Session = None, force: bool = False):
             date_of_birth=date(1975, 1, 10),
             programme="",
             academic_year="2025-2026",
-            apaar_id=apaar_valid_1,
+            apaar_id=generate_valid_synthetic_apaar("91000000099"),
             enrollment_status="Active",
             department="Civil Engineering"
         )
@@ -339,19 +344,20 @@ def seed_database(db: Session = None, force: bool = False):
 
         # Seed initial VerificationRuns
         v_run_1 = VerificationRun(
-            scenario="success",
+            scenario="normal",
             service_name="MOCK_REGISTRY",
-            request_json='{"apaar_id": "900000000018", "full_name": "Aarav Sharma"}',
-            response_json='{"outcome": "MATCHED", "match_score": 1.0, "registry_status": "ACTIVE_VERIFIED"}',
+            request_json='{"apaar_id": "900000000018", "full_name": "Aarav Sharma", "date_of_birth": "2004-03-15"}',
+            response_json='{"service": "MOCK_REGISTRY", "status_code": 200, "outcome": "MATCHED", "simulated": true, "disclaimer": "SYNTHETIC_SANDBOX_DEMO: Zero connection to live government or UIDAI infrastructure.", "data": {"apaar_id": "900000000018", "registry_status": "Active", "match_score": 1.0, "full_name_match": true, "dob_match": true, "simulated_token": "sim_token_0018"}, "comparison": {"apaar_id_found": true, "full_name_match": true, "dob_match": true, "discrepant_fields": [], "details": "Full demographic and date of birth match confirmed against synthetic institutional registry record."}}',
             outcome="MATCHED",
             simulated=True,
-            duration_ms=160
+            duration_ms=160,
+            student_id=1
         )
         v_run_2 = VerificationRun(
             scenario="timeout",
             service_name="FAILURE_SIMULATION",
-            request_json='{"apaar_id": "984210543217"}',
-            response_json='{"simulated_timeout": true, "error": {"code": "SIMULATED_GATEWAY_TIMEOUT"}}',
+            request_json='{"apaar_id": "984210543217", "full_name": "Simulated Timeout Test", "date_of_birth": "2004-01-01"}',
+            response_json='{"service": "FAILURE_SIMULATION", "status_code": 504, "outcome": "TIMEOUT", "simulated": true, "simulated_timeout": true, "distinguishable_from_network_error": true, "disclaimer": "SYNTHETIC_SANDBOX_DEMO: Zero connection to live government or UIDAI infrastructure.", "error": {"code": "SIMULATED_GATEWAY_TIMEOUT", "message": "Simulated external service timeout after 500ms threshold (Deterministic test scenario)."}}',
             outcome="TIMEOUT",
             simulated=True,
             duration_ms=500

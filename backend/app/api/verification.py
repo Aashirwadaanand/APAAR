@@ -38,9 +38,11 @@ def run_verification_scenario(payload: VerificationRunRequest, db: Session = Dep
             student_payload["date_of_birth"] = str(student.date_of_birth) if student.date_of_birth else ""
 
     try:
-        execution = verification_service.run_scenario(payload.scenario, student_payload)
+        execution = verification_service.run_scenario(payload.scenario, student_payload, db=db)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+    matched_student_id = execution.get("response", {}).get("student_id") or payload.student_id
 
     # Persist VerificationRun in database
     run_record = VerificationRun(
@@ -50,9 +52,11 @@ def run_verification_scenario(payload: VerificationRunRequest, db: Session = Dep
         response_json=json.dumps(execution["response"]),
         outcome=execution["outcome"],
         simulated=True,
-        duration_ms=execution["duration_ms"]
+        duration_ms=execution["duration_ms"],
+        student_id=matched_student_id
     )
     db.add(run_record)
+    db.flush()
 
     audit = AuditEvent(
         actor_label="Sandbox Harness",
@@ -62,7 +66,10 @@ def run_verification_scenario(payload: VerificationRunRequest, db: Session = Dep
         details_json=json.dumps({
             "scenario": payload.scenario,
             "outcome": execution["outcome"],
-            "service": execution["service_name"]
+            "service": execution["service_name"],
+            "apaar_id": student_payload.get("apaar_id"),
+            "student_id": matched_student_id,
+            "simulated": True
         })
     )
     db.add(audit)

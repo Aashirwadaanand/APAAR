@@ -19,5 +19,6 @@ class VerificationRunResponse(BaseModel):
     simulated: bool
     duration_ms: int
     created_at: datetime
+    student_id: Optional[int] = None
 
     model_config = ConfigDict(from_attributes=True)

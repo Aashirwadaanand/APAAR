@@ -1,7 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useLocation, Link } from 'react-router-dom';
-import { Database, RefreshCw, Sliders, Shield } from 'lucide-react';
-import { api } from '../../services/api';
+import { RefreshCw, Sliders } from 'lucide-react';
 
 const routeTitles: Record<string, string> = {
   '/': 'Overview',
@@ -20,29 +19,12 @@ interface TopbarProps {
 
 export const Topbar: React.FC<TopbarProps> = ({ onRefresh }) => {
   const location = useLocation();
-  const [dbStatus, setDbStatus] = useState<'checking' | 'connected' | 'error'>('checking');
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const currentTitle = routeTitles[location.pathname] || 'Enrolment Integrity';
 
-  const checkConnection = async () => {
-    try {
-      await api.getHealth();
-      setDbStatus('connected');
-    } catch {
-      setDbStatus('error');
-    }
-  };
-
-  useEffect(() => {
-    checkConnection();
-    const interval = setInterval(checkConnection, 45000);
-    return () => clearInterval(interval);
-  }, []);
-
   const handleManualRefresh = () => {
     setIsRefreshing(true);
-    checkConnection();
     if (onRefresh) onRefresh();
     setTimeout(() => setIsRefreshing(false), 500);
   };
@@ -58,27 +40,8 @@ export const Topbar: React.FC<TopbarProps> = ({ onRefresh }) => {
         </div>
       </div>
 
-      {/* Persistent Environment Label and Actions */}
+      {/* Header Actions */}
       <div className="flex items-center gap-3">
-        <div className="hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900 text-amber-900 dark:text-amber-200 text-xs">
-          <Shield className="w-3.5 h-3.5 text-amber-600 shrink-0" />
-          <span className="font-medium">DEMO ENVIRONMENT · SYNTHETIC DATA</span>
-        </div>
-
-        {/* Database Status Indicator */}
-        <div className="flex items-center gap-1.5 px-2.5 py-1 bg-surface-secondary border border-institutional rounded text-xs font-mono text-institutional-main">
-          <Database className="w-3.5 h-3.5 text-institutional-muted" />
-          <span className="text-institutional-muted">DB:</span>
-          {dbStatus === 'connected' ? (
-            <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-semibold">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" /> SQLite
-            </span>
-          ) : dbStatus === 'checking' ? (
-            <span className="text-amber-600">Checking...</span>
-          ) : (
-            <span className="text-red-600 font-semibold">Offline</span>
-          )}
-        </div>
 
         {/* Refresh Action */}
         <button

@@ -141,24 +141,19 @@ def test_integrity_scan_and_case_deduplication(client):
     assert rechecked_case["status"] == "RESOLVED"
 
 def test_all_seven_sandbox_scenarios(client):
-    """Test all 7 verification sandbox scenarios and ensure all return simulated=True."""
-    expected_outcomes = {
-        "success": ("MATCHED", 200),
-        "unknown_identifier": ("NOT_FOUND", 404),
-        "attribute_mismatch": ("MISMATCH", 200),
-        "consent_denied": ("CONSENT_DENIED", 403),
-        "timeout": ("TIMEOUT", 504),
-        "rate_limited": ("RATE_LIMITED", 429),
-        "unavailable": ("SERVICE_UNAVAILABLE", 503)
-    }
+    """Test all 7 verification sandbox scenarios with realistic payloads and verify simulated responses."""
+    scenarios_to_test = [
+        ("success", {"apaar_id": "900000000018", "full_name": "Aarav Sharma", "date_of_birth": "2004-03-15"}, "MATCHED", 200),
+        ("unknown_identifier", {"apaar_id": "999900000016", "full_name": "Unregistered Student", "date_of_birth": "2004-01-01"}, "NOT_FOUND", 404),
+        ("attribute_mismatch", {"apaar_id": "900000000018", "full_name": "Aarav Sharma", "date_of_birth": "2001-01-01"}, "MISMATCH", 200),
+        ("consent_denied", {"apaar_id": "900000000018", "full_name": "Aarav Sharma", "date_of_birth": "2004-03-15"}, "CONSENT_DENIED", 403),
+        ("timeout", {"apaar_id": "900000000018", "full_name": "Aarav Sharma", "date_of_birth": "2004-03-15"}, "TIMEOUT", 504),
+        ("rate_limited", {"apaar_id": "900000000018", "full_name": "Aarav Sharma", "date_of_birth": "2004-03-15"}, "RATE_LIMITED", 429),
+        ("unavailable", {"apaar_id": "900000000018", "full_name": "Aarav Sharma", "date_of_birth": "2004-03-15"}, "SERVICE_UNAVAILABLE", 503)
+    ]
 
-    for scenario, (outcome, code) in expected_outcomes.items():
-        payload = {
-            "scenario": scenario,
-            "apaar_id": "910000000018",
-            "full_name": "Aarav Sharma",
-            "date_of_birth": "2004-03-15"
-        }
+    for scenario, payload_fields, outcome, code in scenarios_to_test:
+        payload = {"scenario": scenario, **payload_fields}
         res = client.post("/api/verification/run", json=payload)
         assert res.status_code == 200, f"Scenario {scenario} returned status {res.status_code}"
         data = res.json()
@@ -169,6 +164,114 @@ def test_all_seven_sandbox_scenarios(client):
         # Check response JSON contents
         resp_obj = json.loads(data["response_json"])
         assert resp_obj["status_code"] == code
+
+def test_data_driven_verification_suite(client):
+    """Test data-driven verification against stored synthetic records, field comparisons, and audit tracking."""
+    # 1. Exact Match on Aarav Sharma
+    res_match = client.post("/api/verification/run", json={
+        "scenario": "normal",
+        "apaar_id": "9000-0000-0018",
+        "full_name": "  Aarav   Sharma  ",
+        "date_of_birth": "2004-03-15"
+    })
+    assert res_match.status_code == 200
+    d_match = res_match.json()
+    assert d_match["outcome"] == "MATCHED"
+    resp_match = json.loads(d_match["response_json"])
+    assert resp_match["comparison"]["apaar_id_found"] is True
+    assert resp_match["comparison"]["full_name_match"] is True
+    assert resp_match["comparison"]["dob_match"] is True
+    assert len(resp_match["comparison"]["discrepant_fields"]) == 0
+    assert d_match["student_id"] is not None
+
+    # 2. Name Mismatch
+    res_name_diff = client.post("/api/verification/run", json={
+        "scenario": "normal",
+        "apaar_id": "900000000018",
+        "full_name": "Aarav Verma",
+        "date_of_birth": "2004-03-15"
+    })
+    assert res_name_diff.status_code == 200
+    d_name_diff = res_name_diff.json()
+    assert d_name_diff["outcome"] == "MISMATCH"
+    resp_name_diff = json.loads(d_name_diff["response_json"])
+    assert resp_name_diff["comparison"]["full_name_match"] is False
+    assert resp_name_diff["comparison"]["dob_match"] is True
+    assert "full_name" in resp_name_diff["comparison"]["discrepant_fields"]
+
+    # 3. DOB Mismatch
+    res_dob_diff = client.post("/api/verification/run", json={
+        "scenario": "normal",
+        "apaar_id": "900000000018",
+        "full_name": "Aarav Sharma",
+        "date_of_birth": "2002-11-20"
+    })
+    assert res_dob_diff.status_code == 200
+    d_dob_diff = res_dob_diff.json()
+    assert d_dob_diff["outcome"] == "MISMATCH"
+    resp_dob_diff = json.loads(d_dob_diff["response_json"])
+    assert resp_dob_diff["comparison"]["dob_match"] is False
+    assert "date_of_birth" in resp_dob_diff["comparison"]["discrepant_fields"]
+
+    # 4. Unknown Identifier
+    res_unknown = client.post("/api/verification/run", json={
+        "scenario": "normal",
+        "apaar_id": "999900000016",
+        "full_name": "Unregistered Student",
+        "date_of_birth": "2004-01-01"
+    })
+    assert res_unknown.status_code == 200
+    d_unknown = res_unknown.json()
+    assert d_unknown["outcome"] == "NOT_FOUND"
+    resp_unknown = json.loads(d_unknown["response_json"])
+    assert resp_unknown["status_code"] == 404
+    assert resp_unknown["comparison"]["apaar_id_found"] is False
+
+    # 5. Optional Simulation Tools: Timeout & Rate Limiting (must not override normal verification)
+    res_timeout = client.post("/api/verification/run", json={
+        "scenario": "timeout",
+        "apaar_id": "900000000018",
+        "full_name": "Aarav Sharma",
+        "date_of_birth": "2004-03-15"
+    })
+    assert res_timeout.status_code == 200
+    d_timeout = res_timeout.json()
+    assert d_timeout["outcome"] == "TIMEOUT"
+    resp_timeout = json.loads(d_timeout["response_json"])
+    assert resp_timeout["status_code"] == 504
+    assert resp_timeout["simulated_timeout"] is True
+
+    res_rate = client.post("/api/verification/run", json={
+        "scenario": "rate_limited",
+        "apaar_id": "900000000018",
+        "full_name": "Aarav Sharma",
+        "date_of_birth": "2004-03-15"
+    })
+    assert res_rate.status_code == 200
+    d_rate = res_rate.json()
+    assert d_rate["outcome"] == "RATE_LIMITED"
+    resp_rate = json.loads(d_rate["response_json"])
+    assert resp_rate["status_code"] == 429
+
+    # 6. Verify Verification Run History includes created runs
+    res_runs = client.get("/api/verification/runs?limit=10")
+    assert res_runs.status_code == 200
+    runs = res_runs.json()
+    assert len(runs) >= 6
+    assert runs[0]["scenario"] in ["rate_limited", "timeout", "normal"]
+    assert "apaar_id" in runs[0]["request_json"]
+
+    # 7. Verify Audit Log recorded the execution
+    res_audit = client.get("/api/audit?limit=20")
+    assert res_audit.status_code == 200
+    audits = res_audit.json()
+    verification_audits = [a for a in audits if a["action"] == "VERIFICATION_RUN_EXECUTED"]
+    assert len(verification_audits) >= 6
+    latest_audit = verification_audits[0]
+    audit_details = json.loads(latest_audit["details_json"])
+    assert "apaar_id" in audit_details
+    assert "outcome" in audit_details
+    assert audit_details["simulated"] is True
 
 def test_audit_trail_immutable_ledger(client):
     """Test that platform actions generate immutable audit log events."""

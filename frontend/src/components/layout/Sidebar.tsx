@@ -70,12 +70,6 @@ export const Sidebar: React.FC = () => {
         </button>
       </div>
 
-      {/* Persistent Environment Label */}
-      <div className={`px-3 py-2 bg-surface-secondary/70 border-b border-institutional text-center ${collapsed ? 'text-[9px]' : 'text-[10px]'}`}>
-        <span className="font-mono font-semibold tracking-wider text-institutional-muted uppercase">
-          {collapsed ? 'DEMO' : 'DEMO ENVIRONMENT · SYNTHETIC DATA'}
-        </span>
-      </div>
 
       {/* Navigation Links */}
       <nav className="flex-1 px-2.5 py-3 space-y-1 overflow-y-auto">
