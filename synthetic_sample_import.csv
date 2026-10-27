@@ -1,0 +1,7 @@
+institution_student_id,full_name,programme,academic_year,apaar_id,date_of_birth,enrollment_status,email,mobile
+DEMO-ONBOARD-001,Rajeshwari Sundaram,B.Tech Electrical & Electronics,2025-2026,910000000089,2004-05-19,Active,rajeshwari.s@institute.edu,9811223344
+DEMO-ONBOARD-002,Farhan Qureshi,B.Tech Mechanical Engineering,2025-2026,910000000091,2004-09-12,Active,farhan.q@institute.edu,9822334455
+DEMO-ONBOARD-003,Ishita Banerjee,B.Tech Computer Science,2025-2026,910000000070,2005-01-25,Active,ishita.b@institute.edu,9833445566
+DEMO-ONBOARD-004,,B.Tech Civil Engineering,2025-2026,910000000062,2004-11-03,Active,missing.name@institute.edu,9844556677
+DEMO-ONBOARD-005,Kunal Malhotra,B.Tech Information Technology,2025-2026,999999999999,2004-04-14,Active,kunal.m@institute.edu,9855667788
+DEMO-ONBOARD-001,Duplicate Roll Test,B.Tech Electrical,2025-2026,910000000062,2004-07-20,Active,dup.roll@institute.edu,9866778899

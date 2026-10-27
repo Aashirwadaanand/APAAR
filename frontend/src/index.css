@@ -1,0 +1,174 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --canvas: #F7F7F2;
+    --surface: #FFFFFF;
+    --surface-secondary: #F3F4EE;
+    --surface-hover: #ECEEE5;
+    --primary: #245C48;
+    --primary-hover: #1B4737;
+    --primary-light: #D8E6D8;
+    --primary-border: #92B79A;
+    --text-main: #202923;
+    --text-muted: #707A72;
+    --border-subtle: #E3E5DD;
+    --border-strong: #C9CDC0;
+    
+    --warning-text: #92400E;
+    --warning-bg: #FEF3C7;
+    --warning-border: #FDE68A;
+    
+    --error-text: #B91C1C;
+    --error-bg: #FEE2E2;
+    --error-border: #FECACA;
+    
+    --info-text: #1E40AF;
+    --info-bg: #EFF6FF;
+    --info-border: #BFDBFE;
+
+    --table-py: 0.75rem;
+    --table-px: 1rem;
+    --card-p: 1.25rem;
+  }
+
+  [data-theme="dark"] {
+    --canvas: #111613;
+    --surface: #1A221E;
+    --surface-secondary: #212C27;
+    --surface-hover: #293831;
+    --primary: #3DA17E;
+    --primary-hover: #4EB890;
+    --primary-light: #1A362B;
+    --primary-border: #2F6952;
+    --text-main: #EEF3EF;
+    --text-muted: #95A199;
+    --border-subtle: #2C3831;
+    --border-strong: #3F5046;
+    
+    --warning-text: #FDE68A;
+    --warning-bg: #451A03;
+    --warning-border: #78350F;
+    
+    --error-text: #FECACA;
+    --error-bg: #450A0A;
+    --error-border: #7F1D1D;
+
+    --info-text: #BFDBFE;
+    --info-bg: #1E293B;
+    --info-border: #3B82F6;
+  }
+
+  [data-accent="slate"] {
+    --primary: #2563EB;
+    --primary-hover: #1D4ED8;
+    --primary-light: #DBEAFE;
+    --primary-border: #93C5FD;
+  }
+  [data-theme="dark"][data-accent="slate"] {
+    --primary: #60A5FA;
+    --primary-hover: #93C5FD;
+    --primary-light: #1E293B;
+    --primary-border: #3B82F6;
+  }
+
+  [data-accent="terracotta"] {
+    --primary: #C2410C;
+    --primary-hover: #9A3412;
+    --primary-light: #FFEDD5;
+    --primary-border: #FDBA74;
+  }
+  [data-theme="dark"][data-accent="terracotta"] {
+    --primary: #FB923C;
+    --primary-hover: #FDBA74;
+    --primary-light: #431407;
+    --primary-border: #EA580C;
+  }
+
+  [data-density="compact"] {
+    --table-py: 0.4rem;
+    --table-px: 0.65rem;
+    --card-p: 0.85rem;
+  }
+
+  [data-reduced-motion="true"] * {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+
+  body {
+    background-color: var(--canvas);
+    color: var(--text-main);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    min-height: 100vh;
+  }
+
+  #root {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+}
+
+/* Institutional Design Utility Classes */
+.bg-canvas { background-color: var(--canvas); }
+.bg-surface { background-color: var(--surface); }
+.bg-surface-secondary { background-color: var(--surface-secondary); }
+.bg-surface-hover:hover { background-color: var(--surface-hover); }
+
+.bg-institutional-primary { background-color: var(--primary); }
+.bg-institutional-primary-hover:hover { background-color: var(--primary-hover); }
+.bg-institutional-selected { background-color: var(--primary-light); }
+
+.text-institutional-main { color: var(--text-main); }
+.text-institutional-muted { color: var(--text-muted); }
+.text-institutional-primary { color: var(--primary); }
+
+.border-institutional { border-color: var(--border-subtle); }
+.border-institutional-strong { border-color: var(--border-strong); }
+.border-institutional-primary { border-color: var(--primary-border); }
+
+/* Density helper */
+.card-padded { padding: var(--card-p); }
+.table-td-padded { padding-top: var(--table-py); padding-bottom: var(--table-py); padding-left: var(--table-px); padding-right: var(--table-px); }
+
+/* Status Badges */
+.badge-verified {
+  background-color: #ECFDF5;
+  color: #065F46;
+  border: 1px solid #A7F3D0;
+}
+[data-theme="dark"] .badge-verified {
+  background-color: #064E3B;
+  color: #A7F3D0;
+  border: 1px solid #059669;
+}
+
+.badge-unverified {
+  background-color: var(--surface-secondary);
+  color: var(--text-muted);
+  border: 1px solid var(--border-subtle);
+}
+
+.badge-warning {
+  background-color: var(--warning-bg);
+  color: var(--warning-text);
+  border: 1px solid var(--warning-border);
+}
+
+.badge-danger {
+  background-color: var(--error-bg);
+  color: var(--error-text);
+  border: 1px solid var(--error-border);
+}
+
+.badge-simulated {
+  background-color: var(--info-bg);
+  color: var(--info-text);
+  border: 1px solid var(--info-border);
+}
